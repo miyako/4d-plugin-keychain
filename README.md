@@ -109,9 +109,9 @@ possible values: ``NTLM``, ``MSN``, ``DPA``, ``RPA``, ``HTTPBasic``, ``HTTPDiges
 
 possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
 
-possible values: * [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
+* [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
 
-``true``, ``false``, ``any``
+possible values: ``true``, ``false``, ``any``
 
 attributes with a boolean value:
 
