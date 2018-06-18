@@ -179,13 +179,13 @@ attributes with a numeric value:
 
 [matchLimit](https://developer.apple.com/documentation/security/ksecmatchlimit?language=objc)
 
-[useItemChain](https://developer.apple.com/documentation/security/ksecuseitemlist?language=objc)
+[useItemChain](https://developer.apple.com/documentation/security/ksecuseitemchain?language=objc)
 
 [useKeychain](https://developer.apple.com/documentation/security/ksecusekeychain?language=objc)
 
 [useOperationPrompt](https://developer.apple.com/documentation/security/ksecuseoperationprompt?language=objc)
 
-TODO: [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecmatchlimit?language=objc)
+TODO: [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
 
 TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatchvalidondate?language=objc)
 
