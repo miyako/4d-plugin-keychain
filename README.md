@@ -101,6 +101,10 @@ possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``,
 
 possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ``ECSECPrimeRandom``     
 
+* [PRF](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
+
+possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
+
 attributes with a boolean value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
@@ -206,8 +210,3 @@ NTLM, MSN, DPA, RPA, HTTPBasic, HTTPDigest, HTMLForm, default
 [salt](https://developer.apple.com/documentation/security/ksecattrsalt?language=objc)
 
 [tokenID](https://developer.apple.com/documentation/security/ksecattrtokenid?language=objc)
-
-TODO: [PRF](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
-
-SHA1, SHA224, SHA256, SHA384, SHA512     
-
