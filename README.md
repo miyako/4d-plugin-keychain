@@ -195,10 +195,6 @@ TODO: [accessible](https://developer.apple.com/documentation/security/ksecattrac
 
 whenPasscodeSetThisDeviceOnly, whenUnlockedThisDeviceOnly, whenUnlocked, afterFirstUnlockThisDeviceOnly, afterFirstUnlock, alwaysThisDeviceOnly, always
 
-TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
-
-TODO: [modificationDate](https://developer.apple.com/documentation/security/ksecattrmodificationdate?language=objc)
-
 [serialNumber](https://developer.apple.com/documentation/security/ksecattrserialnumber?language=objc)
 
 [subjectKeyID](https://developer.apple.com/documentation/security/ksecattrsubjectkeyid?language=objc)
@@ -210,3 +206,7 @@ TODO: [modificationDate](https://developer.apple.com/documentation/security/ksec
 [salt](https://developer.apple.com/documentation/security/ksecattrsalt?language=objc)
 
 [tokenID](https://developer.apple.com/documentation/security/ksecattrtokenid?language=objc)
+
+TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
+
+TODO: [modificationDate](https://developer.apple.com/documentation/security/ksecattrmodificationdate?language=objc)
