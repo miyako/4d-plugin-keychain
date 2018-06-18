@@ -109,6 +109,10 @@ possible values: ``NTLM``, ``MSN``, ``DPA``, ``RPA``, ``HTTPBasic``, ``HTTPDiges
 
 possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
 
+possible values: * [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
+
+``true``, ``false``, ``any``
+
 attributes with a boolean value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
@@ -190,10 +194,6 @@ TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatch
 TODO: [accessible](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
 
 whenPasscodeSetThisDeviceOnly, whenUnlockedThisDeviceOnly, whenUnlocked, afterFirstUnlockThisDeviceOnly, afterFirstUnlock, alwaysThisDeviceOnly, always
-
-TODO: [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
-
-true, false, any
 
 TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
 
