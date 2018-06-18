@@ -93,6 +93,10 @@ attributes with a string value:
 
 * [``syncViewHint``](https://developer.apple.com/documentation/security/ksecattrsyncviewhint?language=objc)
 
+[``protocol``](https://developer.apple.com/documentation/security/ksecattrprotocol?language=objc)
+
+possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``, ``SMTP``, ``SOCKS``, ``IMAP``, ``LDAP``, ``AppleTalk``, ``AFP``, ``Telnet``, ``SSH``, ``FTPS``, ``HTTPS``, ``HTTPProxy``, ``HTTPSProxy``, ``FTPProxy``, ``SMB``, ``RTSP``, ``RTSPProxy``, ``DAAP``, ``EPPC``, ``IPP``, ``NNTPS``, ``LDAPS``, ``TelnetS``, ``IMAPS``, ``IRCS``, ``POP3S``
+
 attributes with a boolean value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
@@ -207,6 +211,3 @@ TODO: [PRF](https://developer.apple.com/documentation/security/ksecattrprf?langu
 
 SHA1, SHA224, SHA256, SHA384, SHA512     
 
-TODO: [protocol](https://developer.apple.com/documentation/security/ksecattrprotocol?language=objc)
-
-FTP, FTPAccount, HTTP, IRC, POP3, SMTP, SOCKS, IMAP, LDAP, AppleTalk, AFP, Telnet, SSH, FTPS, HTTPS, HTTPProxy, FTPProxy, SMB, RTSP, RTSPProxy, DAAP, EPPC, IPP, NNTPS, LDAPS, TelnetS, IMAPS, IRCS, POP3S
