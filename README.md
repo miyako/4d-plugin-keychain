@@ -117,6 +117,10 @@ possible values: ``true``, ``false``, ``any``
 
 possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly``, ``whenUnlocked``, ``afterFirstUnlockThisDeviceOnly``, ``afterFirstUnlock``, ``alwaysThisDeviceOnly``, ``always``
 
+* [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
+
+possible values: ``allow``, ``fail``, ``skip``
+
 attributes with a boolean value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
@@ -184,8 +188,6 @@ attributes with a numeric value:
 [useKeychain](https://developer.apple.com/documentation/security/ksecusekeychain?language=objc)
 
 [useOperationPrompt](https://developer.apple.com/documentation/security/ksecuseoperationprompt?language=objc)
-
-TODO: [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
 
 TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatchvalidondate?language=objc)
 
