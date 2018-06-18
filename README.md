@@ -91,13 +91,15 @@ attributes with a string value:
 
 * [``generic``](https://developer.apple.com/documentation/security/ksecattrgeneric?language=objc)
 
+~~[``syncViewHint``]~~(https://developer.apple.com/documentation/security/ksecattrsyncviewhint?language=objc)
+
 * [``protocol``](https://developer.apple.com/documentation/security/ksecattrprotocol?language=objc)
 
 possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``, ``SMTP``, ``SOCKS``, ``IMAP``, ``LDAP``, ``AppleTalk``, ``AFP``, ``Telnet``, ``SSH``, ``FTPS``, ``HTTPS``, ``HTTPProxy``, ``HTTPSProxy``, ``FTPProxy``, ``SMB``, ``RTSP``, ``RTSPProxy``, ``DAAP``, ``EPPC``, ``IPP``, ``NNTPS``, ``LDAPS``, ``TelnetS``, ``IMAPS``, ``IRCS``, ``POP3S``
 
 * [keyType](https://developer.apple.com/documentation/security/ksecattrkeytype?language=objc)
 
-possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ``ECSECPrimeRandom``     
+possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ~~``ECSECPrimeRandom``~~     
 
 * [authenticationType](https://developer.apple.com/documentation/security/ksecattrauthenticationtype?language=objc)
 
@@ -204,8 +206,6 @@ TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatch
 [salt](https://developer.apple.com/documentation/security/ksecattrsalt?language=objc)
 
 [tokenID](https://developer.apple.com/documentation/security/ksecattrtokenid?language=objc)
-
-[syncViewHint](https://developer.apple.com/documentation/security/ksecattrsyncviewhint?language=objc)
 
 TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
 
