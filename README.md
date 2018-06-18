@@ -91,7 +91,7 @@ attributes with a string value:
 
 * [``generic``](https://developer.apple.com/documentation/security/ksecattrgeneric?language=objc)
 
-~~[``syncViewHint``]~~(https://developer.apple.com/documentation/security/ksecattrsyncviewhint?language=objc)
+~~[``syncViewHint``](https://developer.apple.com/documentation/security/ksecattrsyncviewhint?language=objc)~~
 
 * [``protocol``](https://developer.apple.com/documentation/security/ksecattrprotocol?language=objc)
 
