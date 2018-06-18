@@ -26,7 +26,7 @@ result:=Keychain Search items (request;option;data)
 
 Parameter|Type|Description
 ------------|------------|----
-value|TEXT|``json``
+request|TEXT|``json``
 option|LONGINT|
 data|ARRAY BLOB|
 result|TEXT|``json``
@@ -212,3 +212,36 @@ TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatch
 TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
 
 TODO: [modificationDate](https://developer.apple.com/documentation/security/ksecattrmodificationdate?language=objc)
+
+```
+result:=Keychain Add item (request;item;option;data)
+```
+
+Parameter|Type|Description
+------------|------------|----
+request|TEXT|``json``
+item|TEXT|``json``
+option|LONGINT|
+data|ARRAY BLOB|
+result|TEXT|``json``
+
+```
+result:=Keychain Modify items (request;item;option;data)
+```
+
+Parameter|Type|Description
+------------|------------|----
+request|TEXT|``json``
+item|TEXT|``json``
+option|LONGINT|
+data|ARRAY BLOB|
+result|TEXT|``json``
+
+```
+result:=Keychain Delete items (request;item;option;data)
+```
+
+Parameter|Type|Description
+------------|------------|----
+request|TEXT|``json``
+result|TEXT|``json``
