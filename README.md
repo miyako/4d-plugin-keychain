@@ -101,6 +101,10 @@ possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``,
 
 possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ``ECSECPrimeRandom``     
 
+* [authenticationType](https://developer.apple.com/documentation/security/ksecattrauthenticationtype?language=objc)
+
+possible values: ``NTLM``, ``MSN``, ``DPA``, ``RPA``, ``HTTPBasic``, ``HTTPDigest``, ``HTMLForm``, ``default``
+
 * [PRF](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
 
 possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
@@ -194,10 +198,6 @@ true, false, any
 TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
 
 TODO: [modificationDate](https://developer.apple.com/documentation/security/ksecattrmodificationdate?language=objc)
-
-TODO: [authenticationType](https://developer.apple.com/documentation/security/ksecattrauthenticationtype?language=objc)
-
-NTLM, MSN, DPA, RPA, HTTPBasic, HTTPDigest, HTMLForm, default
 
 [serialNumber](https://developer.apple.com/documentation/security/ksecattrserialnumber?language=objc)
 
