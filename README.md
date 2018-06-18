@@ -238,7 +238,7 @@ data|ARRAY BLOB|
 result|TEXT|``json``
 
 ```
-result:=Keychain Delete items (request;item;option;data)
+result:=Keychain Delete items (request)
 ```
 
 Parameter|Type|Description
