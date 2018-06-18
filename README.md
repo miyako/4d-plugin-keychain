@@ -113,6 +113,10 @@ possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
 
 possible values: ``true``, ``false``, ``any``
 
+* [accessible](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
+
+possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly``, ``whenUnlocked``, ``afterFirstUnlockThisDeviceOnly``, ``afterFirstUnlock``, ``alwaysThisDeviceOnly``, ``always``
+
 attributes with a boolean value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
@@ -190,10 +194,6 @@ TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatch
 [item attributes](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values?language=objc) not supported:
 
 [accessControl](https://developer.apple.com/documentation/security/ksecuseitemlist?language=objc)
-
-TODO: [accessible](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
-
-whenPasscodeSetThisDeviceOnly, whenUnlockedThisDeviceOnly, whenUnlocked, afterFirstUnlockThisDeviceOnly, afterFirstUnlock, alwaysThisDeviceOnly, always
 
 [serialNumber](https://developer.apple.com/documentation/security/ksecattrserialnumber?language=objc)
 
