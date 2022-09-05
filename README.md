@@ -1,51 +1,67 @@
 # 4d-plugin-keychain
 Access macOS Keychain
 
-### Platform
+## Generic Password / Internet Password
 
-| carbon | cocoa | win32 | win64 |
-|:------:|:-----:|:---------:|:---------:|
-|<img src="https://cloud.githubusercontent.com/assets/1725068/22371562/1b091f0a-e4db-11e6-8458-8653954a7cce.png" width="24" height="24" />|<img src="https://cloud.githubusercontent.com/assets/1725068/22371562/1b091f0a-e4db-11e6-8458-8653954a7cce.png" width="24" height="24" />|||
+create password in keychain
 
-### Version
+<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188371613-8844a4d6-ed4b-4945-b5ee-837b4900a67d.png">
 
-<img src="https://cloud.githubusercontent.com/assets/1725068/18940649/21945000-8645-11e6-86ed-4a0f800e5a73.png" width="32" height="32" /> <img src="https://cloud.githubusercontent.com/assets/1725068/18940648/2192ddba-8645-11e6-864d-6d5692d55717.png" width="32" height="32" /> <img src="https://user-images.githubusercontent.com/1725068/41266195-ddf767b2-6e30-11e8-9d6b-2adf6a9f57a5.png" width="32" height="32" />
+```4d
+var $query : Object
 
-### Releases
+$query:=New object
 
+$query.class:="internetPassword"
+$query.authentication:="allow"
+$query.account:="miyako"
+$query.label:="MacBook Pro 2019"
+$query.server:="100.64.1.26:5900"  //port is 0 in this case
+$query.data:=True
+$status:=Keychain Search items($query)
+```
 
-![preemption xx](https://user-images.githubusercontent.com/1725068/41327179-4e839948-6efd-11e8-982b-a670d511e04f.png)
+or 
 
-* ``Keychain Delete items``
+```4d
+var $query : Object
+
+$query:=New object
+
+$query.class:="genericPassword"
+$query.authentication:="allow"
+$query.account:="miyako" 
+$query.label:="TEST"
+$query.data:=True
+$status:=Keychain Search items($query)
+```
+
+UI is displayed on the first instance. after that, the app is authorised to access this keychain.
+
+<img width="434" alt="" src="https://user-images.githubusercontent.com/1725068/188376499-13275811-fa4d-477c-94f8-fdbb57d262b9.png">
+
+<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188371948-999b6c2e-7773-4a04-8da3-527f5f15ea3b.png">
+
+<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188376067-2291d625-cebf-4809-80b7-ad35e328eddd.png">
+
+---
 
 ## Syntax
 
 ```
-result:=Keychain Search items (request;option;data)
+status:=Keychain Search items (query)
 ```
 
 Parameter|Type|Description
 ------------|------------|----
-request|TEXT|``json``
-option|LONGINT|
-data|ARRAY BLOB|
-result|TEXT|``json``
-
-``option`` should be a combination of  
-
-* ``Keychain return data``
-* ``Keychain return attributes``
-* ``Keychain data as index``
-* ``Keychain data as base64``
-* ``Keychain data as hex``
-
-``Keychain data as*`` specifies how binary data should be returned; as index of the ``data`` array, as base64 or hex. 
-
-``Keychain return attributes`` requests public attributes, in which case ``result`` is a collection. 
-
-``Keychain return data`` requests secure attributes (UI is displayed), in which case ``result`` is an object.
+dictionary|Object|
+status|Object|
 
 query parameters may include:  
+
+* [``data``](https://developer.apple.com/documentation/security/ksecreturndata)
+
+:possible values: `true`, `false` (as boolean, not string)
 
 * [``class``](https://developer.apple.com/documentation/security/ksecclass?language=objc)
 
@@ -97,7 +113,7 @@ attributes with a string value:
 
 possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``, ``SMTP``, ``SOCKS``, ``IMAP``, ``LDAP``, ``AppleTalk``, ``AFP``, ``Telnet``, ``SSH``, ``FTPS``, ``HTTPS``, ``HTTPProxy``, ``HTTPSProxy``, ``FTPProxy``, ``SMB``, ``RTSP``, ``RTSPProxy``, ``DAAP``, ``EPPC``, ``IPP``, ``NNTPS``, ``LDAPS``, ``TelnetS``, ``IMAPS``, ``IRCS``, ``POP3S``
 
-* [keyType](https://developer.apple.com/documentation/security/ksecattrkeytype?language=objc)
+* [`keyType`](https://developer.apple.com/documentation/security/ksecattrkeytype?language=objc)
 
 possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ~~``ECSECPrimeRandom``~~     
 
@@ -105,23 +121,23 @@ possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``,
 
 possible values: ``NTLM``, ``MSN``, ``DPA``, ``RPA``, ``HTTPBasic``, ``HTTPDigest``, ``HTMLForm``, ``default``
 
-* [PRF](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
+* [`PRF`](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
 
 possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
 
-* [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
+* [`synchronizable`](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
 
 possible values: ``true``, ``false``, ``any``
 
-* [accessible](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
+* [`accessible`](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
 
 possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly``, ``whenUnlocked``, ``afterFirstUnlockThisDeviceOnly``, ``afterFirstUnlock``, ``alwaysThisDeviceOnly``, ``always``
 
-* [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
+* [`authentication`](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
 
 possible values: ``allow``, ``fail``, ``skip``
 
-attributes with a boolean value:
+attributes with a binary (`0` or `1`) value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
 
@@ -212,36 +228,3 @@ TODO: [validOnDate](https://developer.apple.com/documentation/security/ksecmatch
 TODO: [creationDate](https://developer.apple.com/documentation/security/ksecattrcreationdate?language=objc)
 
 TODO: [modificationDate](https://developer.apple.com/documentation/security/ksecattrmodificationdate?language=objc)
-
-```
-result:=Keychain Add item (request;item;option;data)
-```
-
-Parameter|Type|Description
-------------|------------|----
-request|TEXT|``json``
-item|TEXT|``json``
-option|LONGINT|
-data|ARRAY BLOB|
-result|TEXT|``json``
-
-```
-result:=Keychain Modify items (request;item;option;data)
-```
-
-Parameter|Type|Description
-------------|------------|----
-request|TEXT|``json``
-item|TEXT|``json``
-option|LONGINT|
-data|ARRAY BLOB|
-result|TEXT|``json``
-
-```
-result:=Keychain Delete items (request)
-```
-
-Parameter|Type|Description
-------------|------------|----
-request|TEXT|``json``
-result|TEXT|``json``
