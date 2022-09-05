@@ -1,7 +1,7 @@
 # 4d-plugin-keychain
 Access macOS Keychain
 
-## Generic Password
+## Generic Password / Network Password (e.g. screen sharing)
 
 create password in keychain
 
