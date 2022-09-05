@@ -41,7 +41,7 @@ query parameters may include:
 
 * [``data``](https://developer.apple.com/documentation/security/ksecreturndata)
 
-:possible values: `true`, `false`
+:possible values: `true`, `false` (as boolean, not string)
 
 * [``class``](https://developer.apple.com/documentation/security/ksecclass?language=objc)
 
