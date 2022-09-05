@@ -26,40 +26,22 @@ UI is displayed on the first instance. after that, the app is authorised to acce
 
 ---
 
-
-
-
-
-* ``Keychain Delete items``
-
 ## Syntax
 
 ```
-result:=Keychain Search items (request;option;data)
+status:=Keychain Search items (query)
 ```
 
 Parameter|Type|Description
 ------------|------------|----
-request|TEXT|``json``
-option|LONGINT|
-data|ARRAY BLOB|
-result|TEXT|``json``
-
-``option`` should be a combination of  
-
-* ``Keychain return data``
-* ``Keychain return attributes``
-* ``Keychain data as index``
-* ``Keychain data as base64``
-* ``Keychain data as hex``
-
-``Keychain data as*`` specifies how binary data should be returned; as index of the ``data`` array, as base64 or hex. 
-
-``Keychain return attributes`` requests public attributes, in which case ``result`` is a collection. 
-
-``Keychain return data`` requests secure attributes (UI is displayed), in which case ``result`` is an object.
+dictionary|Object|
+status|Object|
 
 query parameters may include:  
+
+* [``data``](https://developer.apple.com/documentation/security/ksecreturndata)
+
+:possible values: true, false
 
 * [``class``](https://developer.apple.com/documentation/security/ksecclass?language=objc)
 
