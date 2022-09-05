@@ -1,0 +1,11 @@
+{
+    "name": "Keychain Access",
+    "id": 20000,
+    "commands": [
+        {
+            "theme": "Keychain Access",
+            "syntax": "Keychain Search items(&J):J",
+            "threadSafe": true
+        }
+    ]
+}

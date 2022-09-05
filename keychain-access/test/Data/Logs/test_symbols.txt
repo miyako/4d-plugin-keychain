@@ -1,0 +1,1 @@
+09/05/22	15:31Interprocess variables size : 12Process variables size : 216	(M)  TEST_3$status	Object		$query	Object			(M)  TEST_2$status	Object		$query	Object			(M)  TEST_1$status	Object		$query	Object		$labl	Variant		Procedure TEST_3, not called, Thread SafeProcedure TEST_2, not called, Thread SafeProcedure TEST_1, not called, Thread Safe
