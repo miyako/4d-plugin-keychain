@@ -41,7 +41,7 @@ query parameters may include:
 
 * [``data``](https://developer.apple.com/documentation/security/ksecreturndata)
 
-:possible values: true, false
+:possible values: `true`, `false`
 
 * [``class``](https://developer.apple.com/documentation/security/ksecclass?language=objc)
 
@@ -93,7 +93,7 @@ attributes with a string value:
 
 possible values: ``FTP``, ``FTPAccount``, ``HTTP``, ``IRC``, ``NNTP``, ``POP3``, ``SMTP``, ``SOCKS``, ``IMAP``, ``LDAP``, ``AppleTalk``, ``AFP``, ``Telnet``, ``SSH``, ``FTPS``, ``HTTPS``, ``HTTPProxy``, ``HTTPSProxy``, ``FTPProxy``, ``SMB``, ``RTSP``, ``RTSPProxy``, ``DAAP``, ``EPPC``, ``IPP``, ``NNTPS``, ``LDAPS``, ``TelnetS``, ``IMAPS``, ``IRCS``, ``POP3S``
 
-* [keyType](https://developer.apple.com/documentation/security/ksecattrkeytype?language=objc)
+* [`keyType`](https://developer.apple.com/documentation/security/ksecattrkeytype?language=objc)
 
 possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``, ``CAST``, ``ECDSA``, ``EC``, ~~``ECSECPrimeRandom``~~     
 
@@ -101,15 +101,15 @@ possible values: ``RSA``, ``DSA``, ``AES``, ``DES``, ``3DES``, ``RC4``, ``RC2``,
 
 possible values: ``NTLM``, ``MSN``, ``DPA``, ``RPA``, ``HTTPBasic``, ``HTTPDigest``, ``HTMLForm``, ``default``
 
-* [PRF](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
+* [`PRF`](https://developer.apple.com/documentation/security/ksecattrprf?language=objc)
 
 possible values: ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``     
 
-* [synchronizable](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
+* [`synchronizable`](https://developer.apple.com/documentation/security/ksecattrsynchronizable?language=objc)
 
 possible values: ``true``, ``false``, ``any``
 
-* [accessible](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
+* [`accessible`](https://developer.apple.com/documentation/security/ksecattraccessible?language=objc)
 
 possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly``, ``whenUnlocked``, ``afterFirstUnlockThisDeviceOnly``, ``afterFirstUnlock``, ``alwaysThisDeviceOnly``, ``always``
 
