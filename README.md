@@ -113,7 +113,7 @@ possible values: ``true``, ``false``, ``any``
 
 possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly``, ``whenUnlocked``, ``afterFirstUnlockThisDeviceOnly``, ``afterFirstUnlock``, ``alwaysThisDeviceOnly``, ``always``
 
-* [useAuthenticationUI](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
+* [`authentication`](https://developer.apple.com/documentation/security/ksecuseauthenticationui?language=objc)
 
 possible values: ``allow``, ``fail``, ``skip``
 
