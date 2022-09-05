@@ -1,20 +1,30 @@
 # 4d-plugin-keychain
 Access macOS Keychain
 
-### Platform
+## Generic Password
 
-| carbon | cocoa | win32 | win64 |
-|:------:|:-----:|:---------:|:---------:|
-|<img src="https://cloud.githubusercontent.com/assets/1725068/22371562/1b091f0a-e4db-11e6-8458-8653954a7cce.png" width="24" height="24" />|<img src="https://cloud.githubusercontent.com/assets/1725068/22371562/1b091f0a-e4db-11e6-8458-8653954a7cce.png" width="24" height="24" />|||
+create password in keychain
 
-### Version
+<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188371613-8844a4d6-ed4b-4945-b5ee-837b4900a67d.png">
 
-<img src="https://cloud.githubusercontent.com/assets/1725068/18940649/21945000-8645-11e6-86ed-4a0f800e5a73.png" width="32" height="32" /> <img src="https://cloud.githubusercontent.com/assets/1725068/18940648/2192ddba-8645-11e6-864d-6d5692d55717.png" width="32" height="32" /> <img src="https://user-images.githubusercontent.com/1725068/41266195-ddf767b2-6e30-11e8-9d6b-2adf6a9f57a5.png" width="32" height="32" />
+```4d
+var $query : Object
 
-### Releases
+$query:=New object
+
+$query.class:="genericPassword"
+$query.authentication:="allow"
+$query.account:="miyako" 
+$query.label:="TEST"
+$query.data:=True
+$status:=Keychain Search items($query)
+```
 
 
-![preemption xx](https://user-images.githubusercontent.com/1725068/41327179-4e839948-6efd-11e8-982b-a670d511e04f.png)
+
+
+
+
 
 * ``Keychain Delete items``
 
