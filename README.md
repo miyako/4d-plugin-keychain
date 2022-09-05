@@ -117,7 +117,7 @@ possible values: ``whenPasscodeSetThisDeviceOnly``, ``whenUnlockedThisDeviceOnly
 
 possible values: ``allow``, ``fail``, ``skip``
 
-attributes with a boolean value:
+attributes with a binary (`0` or `1`) value:
 
 * [``caseInsensitive``](https://developer.apple.com/documentation/security/ksecmatchcaseinsensitive?language=objc)
 
