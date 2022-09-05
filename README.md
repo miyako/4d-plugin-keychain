@@ -4,7 +4,7 @@
 ![downloads](https://img.shields.io/github/downloads/miyako/4d-plugin-keychain/total)
 
 # 4d-plugin-keychain
-Access macOS Keychain
+Read macOS Keychain (Write, Modify, Delete not implemented)
 
 ## Generic Password / Internet Password
 
