@@ -40,7 +40,7 @@ UI is displayed on the first instance. after that, the app is authorised to acce
 
 <img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188371948-999b6c2e-7773-4a04-8da3-527f5f15ea3b.png">
 
-<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188375456-ec722bfe-49c9-4bce-8ff2-bf5627fc4e2c.png">
+<img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188376067-2291d625-cebf-4809-80b7-ad35e328eddd.png">
 
 ---
 
