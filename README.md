@@ -1,11 +1,27 @@
 # 4d-plugin-keychain
 Access macOS Keychain
 
-## Generic Password / Network Password (e.g. screen sharing)
+## Generic Password / Internet Password
 
 create password in keychain
 
 <img width="534" alt="" src="https://user-images.githubusercontent.com/1725068/188371613-8844a4d6-ed4b-4945-b5ee-837b4900a67d.png">
+
+```4d
+var $query : Object
+
+$query:=New object
+
+$query.class:="internetPassword"
+$query.authentication:="allow"
+$query.account:="miyako"
+$query.label:="MacBook Pro 2019"
+$query.server:="100.64.1.26:5900"  //port is 0 in this case
+$query.data:=True
+$status:=Keychain Search items($query)
+```
+
+or 
 
 ```4d
 var $query : Object
