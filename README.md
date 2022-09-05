@@ -236,6 +236,8 @@ TODO: [modificationDate](https://developer.apple.com/documentation/security/ksec
 
 ## TODO
 
-future references
+* add, delete, modify
+
+* do not run in main thread
 
 * https://github.com/kishikawakatsumi/KeychainAccess
