@@ -1,3 +1,10 @@
-keychain-access/test/userPreferences.*
-keychain-access/build/*
-keychain-access/test/Project/DerivedData/*
+.DS_Store
+build/
+test/userPreferences.*
+test/Project/DerivedData/
+test/Data/Logs/
+test/Logs/
+/Keychain Access.dmg
+/Keychain Access.zip
+test/Plugins/Keychain Access.bundle/Contents/MacOS/
+test/Plugins/Keychain Access.bundle/Contents/_CodeSignature/
