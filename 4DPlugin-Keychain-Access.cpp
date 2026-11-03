@@ -525,7 +525,9 @@ BOOL set_param_boolean(NSMutableDictionary **query, NSString *key_str, NSString 
              return NO;
              }];
     
-    if(f != NSNotFound)
+    /* keys has one more entry than key_constants (no kSecAttrIsPermanent),
+       so the last key would raise NSRangeException in objectAtIndex: */
+    if((f != NSNotFound) && (f < [key_constants count]))
     {
         if([val_str intValue])
         {
@@ -640,182 +642,178 @@ static void appendObjectToCollection(PA_CollectionRef col, PA_ObjectRef obj) {
     PA_ClearVariable(&v);
 }
 
+static void appendAttributesToCollection(PA_CollectionRef items, NSDictionary *result, NSDateFormatter *GMT) {
+    
+    /* NSJSONSerialization can't be used here (isValidJSONObject=NO) */
+    [result enumerateKeysAndObjectsUsingBlock:^void(id key, id obj, BOOL *stop)
+     {
+        /* isKindofClass can't be used here */
+        if((!key) || (!obj) || (CFGetTypeID(key) != CFStringGetTypeID())) return;
+        
+        const char *k = [key UTF8String];
+        if(!k) return;
+        
+        if(CFGetTypeID(obj)==CFNumberGetTypeID())
+        {
+            PA_ObjectRef item = PA_CreateObject();
+            ob_set_n(item, k, [obj doubleValue]);
+            appendObjectToCollection(items, item);
+        }else
+            if(CFGetTypeID(obj)==CFStringGetTypeID())
+            {
+                PA_ObjectRef item = PA_CreateObject();
+                ob_set_s(item, k, [obj UTF8String]);
+                appendObjectToCollection(items, item);
+            }else
+                if(CFGetTypeID(obj)==CFNullGetTypeID())
+                {
+                    PA_ObjectRef item = PA_CreateObject();
+                    ob_set_0(item, k);
+                    appendObjectToCollection(items, item);
+                }else
+                    if(CFGetTypeID(obj)==CFDateGetTypeID())
+                    {
+                        PA_ObjectRef item = PA_CreateObject();
+                        ob_set_s(item, k, [[GMT stringFromDate:obj]UTF8String]);
+                        appendObjectToCollection(items, item);
+                    }else
+                        if(CFGetTypeID(obj)==CFDataGetTypeID())
+                        {
+                            PA_ObjectRef item = PA_CreateObject();
+                            C_BLOB b;
+                            b.setBytes((const uint8_t *)[obj bytes], (uint32_t)[obj length]);
+                            C_TEXT t;
+                            b.toB64Text(&t);
+                            CUTF8String u8;
+                            t.copyUTF8String(&u8);
+                            ob_set_s(item, k, (const char *)u8.c_str());
+                            appendObjectToCollection(items, item);
+                        }
+        
+    }];/* enumerateKeysAndObjectsUsingBlock */
+}
+
 void Keychain_Search_items(PA_PluginParameters params) {
 
     PA_ObjectRef returnValue = PA_CreateObject();
-    PA_ObjectRef arg1 = PA_GetObjectParameter(params, 1);
     
-    Json::Value jsonValue;
-    
-    if(parseObject(arg1, jsonValue)) {
-        
-        NSMutableDictionary *query = [[NSMutableDictionary alloc]init];
-        
-        for(Json::Value::const_iterator it = jsonValue.begin() ; it != jsonValue.end() ; it++)
+    /* the command is thread-safe and may run in a preemptive process
+       with no autorelease pool of its own */
+    @autoreleasepool
+    {
+        /* an exception must not skip PA_ReturnObject */
+        try
         {
-            JSONCPP_STRING _name = it.name();
-            if(_name.length() != 0) {
-                if(it->isString())
-                {
-                    JSONCPP_STRING _value = it->asString();
-                    
-                    NSString *key = [[NSString alloc]initWithUTF8String:_name.c_str()];
-                    NSString *value = [[NSString alloc]initWithUTF8String:_value.c_str()];
-                    
-                    if(!set_param_class(&query, key, value))
-                    if(!set_param_key_class(&query, key, value))
-                    if(!set_param_string(&query, key, value))
-                    if(!set_param_numeric(&query, key, value))
-                    if(!set_param_boolean(&query, key, value))
-                    if(!set_param_prf(&query, key, value))
-                    if(!set_param_protocol(&query, key, value))
-                    if(!set_param_key_type(&query, key, value))
-                    if(!set_param_authentication_type(&query, key, value))
-                    if(!set_param_synchronizable(&query, key, value))
-                    if(!set_param_authentication(&query, key, value))
-                                    
-                    [key release];
-                    [value release];
-                }
-            }
-        }
-        
-        OSStatus status;
-        NSArray *results;
-                
-        [query setValue:(NSNumber *)kCFBooleanTrue forKey:(NSString *)kSecReturnAttributes];
-
-        bool returnData = ob_get_b(arg1, L"data");
-        
-        if(returnData) {
-            //return data
-            [query setValue:(NSNumber *)kSecMatchLimitOne forKey:(NSString *)kSecMatchLimit];
-            [query setValue:(NSNumber *)kCFBooleanTrue forKey:(NSString *)kSecReturnData];
-        }else{
-            //return attributes
-            [query setValue:(NSNumber *)kSecMatchLimitAll forKey:(NSString *)kSecMatchLimit];
-            [query setValue:(NSNumber *)kCFBooleanFalse forKey:(NSString *)kSecReturnData];
-        }
-        
-        status = SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&results);
-        
-        NSString *errorMessage = (NSString *)SecCopyErrorMessageString(status, NULL);
-        
-        if(errorMessage)
-        {
-            ob_set_n(returnValue, "error", status);
-            ob_set_s(returnValue, "errorMessage", [errorMessage UTF8String]);
-            [errorMessage release];
-        }
-
-        PA_CollectionRef items;
-        
-        items = PA_CreateCollection();
-
-        if(returnData) {
-            [(NSDictionary *)results enumerateKeysAndObjectsUsingBlock:^void(id key, id obj, BOOL *stop)
-            {
-                /* isKindofClass can't be used here */
-                if(CFGetTypeID(obj)==CFNumberGetTypeID())
-                {
-                    PA_ObjectRef item = PA_CreateObject();
-                    ob_set_n(item, [key UTF8String], [obj doubleValue]);
-                    appendObjectToCollection(items, item);
-                }else
-                    if(CFGetTypeID(obj)==CFStringGetTypeID())
-                    {
-                        PA_ObjectRef item = PA_CreateObject();
-                        ob_set_s(item, [key UTF8String], [obj UTF8String]);
-                        appendObjectToCollection(items, item);
-                    }else
-                        if(CFGetTypeID(obj)==CFNullGetTypeID())
-                        {
-                            PA_ObjectRef item = PA_CreateObject();
-                            ob_set_0(item, [key UTF8String]);
-                            appendObjectToCollection(items, item);
-                        }else
-                            if(CFGetTypeID(obj)==CFDateGetTypeID())
-                            {
-                                PA_ObjectRef item = PA_CreateObject();
-                                NSDateFormatter *GMT = [[NSDateFormatter alloc]init];
-                                [GMT setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-                                [GMT setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-                                ob_set_s(item, [key UTF8String],[[GMT stringFromDate:obj]UTF8String]);
-                                [GMT release];
-                                appendObjectToCollection(items, item);
-                            }else
-                                if(CFGetTypeID(obj)==CFDataGetTypeID())
-                                {
-                                    PA_ObjectRef item = PA_CreateObject();
-                                    C_BLOB b;
-                                    b.setBytes((const uint8_t *)[obj bytes], (uint32_t)[obj length]);
-                                    C_TEXT t;
-                                    b.toB64Text(&t);
-                                    CUTF8String u8;
-                                    t.copyUTF8String(&u8);
-                                    ob_set_s(item, [key UTF8String], (const char *)u8.c_str());
-                                    appendObjectToCollection(items, item);
-                                }
+            PA_ObjectRef arg1 = PA_GetObjectParameter(params, 1);
             
-            }];/* enumerateKeysAndObjectsUsingBlock */
-
-        }else{
-            for(NSUInteger i = 0; i < [results count];++i)
-            {
-                NSDictionary *result = [results objectAtIndex:i];
-                /* NSJSONSerialization can't be used here (isValidJSONObject=NO) */
-                [result enumerateKeysAndObjectsUsingBlock:^void(id key, id obj, BOOL *stop)
-                 {
-                     /* isKindofClass can't be used here */
-                     if(CFGetTypeID(obj)==CFNumberGetTypeID())
-                     {
-                         PA_ObjectRef item = PA_CreateObject();
-                         ob_set_n(item, [key UTF8String], [obj doubleValue]);
-                         appendObjectToCollection(items, item);
-                     }else
-                         if(CFGetTypeID(obj)==CFStringGetTypeID())
-                         {
-                             PA_ObjectRef item = PA_CreateObject();
-                             ob_set_s(item, [key UTF8String], [obj UTF8String]);
-                             appendObjectToCollection(items, item);
-                         }else
-                             if(CFGetTypeID(obj)==CFNullGetTypeID())
-                             {
-                                 PA_ObjectRef item = PA_CreateObject();
-                                 ob_set_0(item, [key UTF8String]);
-                                 appendObjectToCollection(items, item);
-                             }else
-                                 if(CFGetTypeID(obj)==CFDateGetTypeID())
-                                 {
-                                     PA_ObjectRef item = PA_CreateObject();
-                                     NSDateFormatter *GMT = [[NSDateFormatter alloc]init];
-                                     [GMT setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
-                                     [GMT setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-                                     ob_set_s(item, [key UTF8String],[[GMT stringFromDate:obj]UTF8String]);
-                                     [GMT release];
-                                     appendObjectToCollection(items, item);
-                                 }else
-                                     if(CFGetTypeID(obj)==CFDataGetTypeID())
-                                     {
-                                         PA_ObjectRef item = PA_CreateObject();
-                                         C_BLOB b;
-                                         b.setBytes((const uint8_t *)[obj bytes], (uint32_t)[obj length]);
-                                         C_TEXT t;
-                                         b.toB64Text(&t);
-                                         CUTF8String u8;
-                                         t.copyUTF8String(&u8);
-                                         ob_set_s(item, [key UTF8String], (const char *)u8.c_str());
-                                         appendObjectToCollection(items, item);
-                                     }
-                     
-                 }];/* enumerateKeysAndObjectsUsingBlock */
+            Json::Value jsonValue;
+            
+            if(parseObject(arg1, jsonValue)) {
                 
+                NSMutableDictionary *query = [[NSMutableDictionary alloc]init];
+                
+                for(Json::Value::const_iterator it = jsonValue.begin() ; it != jsonValue.end() ; it++)
+                {
+                    JSONCPP_STRING _name = it.name();
+                    if(_name.length() != 0) {
+                        if(it->isString())
+                        {
+                            JSONCPP_STRING _value = it->asString();
+                            
+                            NSString *key = [[NSString alloc]initWithUTF8String:_name.c_str()];
+                            NSString *value = [[NSString alloc]initWithUTF8String:_value.c_str()];
+                            
+                            if(!set_param_class(&query, key, value))
+                            if(!set_param_key_class(&query, key, value))
+                            if(!set_param_string(&query, key, value))
+                            if(!set_param_numeric(&query, key, value))
+                            if(!set_param_boolean(&query, key, value))
+                            if(!set_param_prf(&query, key, value))
+                            if(!set_param_protocol(&query, key, value))
+                            if(!set_param_key_type(&query, key, value))
+                            if(!set_param_authentication_type(&query, key, value))
+                            if(!set_param_synchronizable(&query, key, value))
+                            if(!set_param_authentication(&query, key, value))
+                            {
+                                /* not a supported query key: ignored */
+                            }
+                            
+                            /* release unconditionally (the chain above used to swallow [key release]) */
+                            [key release];
+                            [value release];
+                        }
+                    }
+                }
+                
+                OSStatus status;
+                CFTypeRef results = NULL;
+                
+                [query setValue:(NSNumber *)kCFBooleanTrue forKey:(NSString *)kSecReturnAttributes];
+                
+                bool returnData = ob_get_b(arg1, L"data");
+                
+                if(returnData) {
+                    //return data
+                    [query setValue:(NSString *)kSecMatchLimitOne forKey:(NSString *)kSecMatchLimit];
+                    [query setValue:(NSNumber *)kCFBooleanTrue forKey:(NSString *)kSecReturnData];
+                }else{
+                    //return attributes
+                    [query setValue:(NSString *)kSecMatchLimitAll forKey:(NSString *)kSecMatchLimit];
+                    [query setValue:(NSNumber *)kCFBooleanFalse forKey:(NSString *)kSecReturnData];
+                }
+                
+                status = SecItemCopyMatching((CFDictionaryRef)query, &results);
+                
+                [query release];
+                
+                NSString *errorMessage = (NSString *)SecCopyErrorMessageString(status, NULL);
+                
+                if(errorMessage)
+                {
+                    ob_set_n(returnValue, "error", status);
+                    ob_set_s(returnValue, "errorMessage", [errorMessage UTF8String]);
+                    [errorMessage release];
+                }
+                
+                PA_CollectionRef items = PA_CreateCollection();
+                
+                if((status == errSecSuccess) && (results)) {
+                    
+                    NSDateFormatter *GMT = [[NSDateFormatter alloc]init];
+                    [GMT setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"];
+                    [GMT setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+                    
+                    if(CFGetTypeID(results) == CFDictionaryGetTypeID()) {
+                        /* kSecMatchLimitOne */
+                        appendAttributesToCollection(items, (NSDictionary *)results, GMT);
+                    }else
+                        if(CFGetTypeID(results) == CFArrayGetTypeID()) {
+                            /* kSecMatchLimitAll */
+                            NSArray *array = (NSArray *)results;
+                            for(NSUInteger i = 0; i < [array count];++i)
+                            {
+                                id result = [array objectAtIndex:i];
+                                if(result && (CFGetTypeID(result) == CFDictionaryGetTypeID())) {
+                                    appendAttributesToCollection(items, (NSDictionary *)result, GMT);
+                                }
+                            }
+                        }
+                    
+                    [GMT release];
+                }
+                
+                /* SecItemCopyMatching returns a +1 reference (this may hold the secret) */
+                if(results) {
+                    CFRelease(results);
+                }
+                
+                ob_set_c(returnValue, L"items", items);
             }
         }
-        
-        ob_set_c(returnValue, L"items", items);
-        
-        [query release];
+        catch(...)
+        {
+            
+        }
     }
     
     PA_ReturnObject(params, returnValue);
