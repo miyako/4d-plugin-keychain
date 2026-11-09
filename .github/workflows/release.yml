@@ -3,35 +3,26 @@
 # dmg attached. There is no Windows build: a Windows64/<Product>.4DX committed
 # in the bundle (prebuilt or a stub) is shipped as is.
 #
-# Trigger: push a tag matching v*.*.* by hand. A tag pushed by
-# bump-version.yml with GITHUB_TOKEN does NOT start this workflow: after a
-# bump, run `gh workflow run release.yml -f tag=vX.Y.Z`.
-# You can also run it manually against an existing tag with workflow_dispatch.
+# Run manually at the selected immutable source SHA. Bump is independent:
+# Build never changes source versions, and Bump never tags or dispatches Build.
 #
-# PORTABILITY: edit only the env block below. Everything else is derived.
+# Source metadata and generated-output paths are validated by .github/scripts.
 # MACOS_DEPLOYMENT_TARGET must equal MACOSX_DEPLOYMENT_TARGET in the pbxproj.
 # Canonical layout enforced:
 #   test/Plugins/<Product>.bundle/Contents/MacOS/<Product>
 #   test/Plugins/<Product>.bundle/Contents/Windows64/<Product>.4DX
 #   test/Plugins/<Product>.bundle/Contents/Resources/manifest.json
 #
-# The macOS job never deletes the bundle: only the plugin binary and the
-# signature are rebuilt. Anything else committed in the bundle (Windows64/,
+# The macOS job never deletes the bundle: only the executable, plist, copied
+# localization and signature are rebuilt. Other committed contents (Windows64/,
 # runtime dylibs in MacOS/, QuickLook/, ...) ships as committed. The runner's
 # file system is case-insensitive, so never `rm -rf .../plugins` (lower case):
 # that deletes .../Plugins too.
 
-name: Build & Release
+name: Build
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Existing tag to build (e.g. v2.3.0)
-        required: true
 
 permissions:
   contents: write
@@ -45,7 +36,7 @@ env:
   # ---------------------------------------------
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-publication-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -56,19 +47,17 @@ jobs:
       tag: ${{ steps.set.outputs.tag }}
       version: ${{ steps.set.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - id: set
+        name: validate selected source and publication absence
         env:
-          RAW_TAG: ${{ inputs.tag || github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          # trim whitespace from a hand-typed workflow_dispatch input (" v1.0.1")
-          TAG="$(echo "$RAW_TAG" | xargs)"
-          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Tag '${RAW_TAG}' is not of the form vX.Y.Z"
-            exit 1
-          fi
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          python3 .github/scripts/release.py preflight --sha "$SELECTED_SHA"
 
   build-macos:
     name: Build macOS, package, sign, notarize & release
@@ -77,7 +66,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.version.outputs.tag }}
+          ref: ${{ github.sha }}
+
+      - name: initial clean source and publication preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/release.py preflight --sha "$SELECTED_SHA"
 
       - name: check prebuilt libraries
         run: |
@@ -85,6 +82,7 @@ jobs:
           # every a/... or lib/... file the Xcode project references must be
           # committed (a gitignored a/* makes the link fail with "no such file")
           MISSING=0
+          # shellcheck disable=SC2013
           for f in $(grep -o 'path = "\{0,1\}\(a\|lib\)/[^";]*' "${{ env.PRODUCT_NAME }}.xcodeproj/project.pbxproj" | sed 's/^path = "\{0,1\}//' | sort -u); do
             if [ ! -e "$f" ]; then
               echo "::error::Missing prebuilt library $f"
@@ -136,15 +134,8 @@ jobs:
           XCODE_PROJECT="${PRODUCT}.xcodeproj"
           XCODE_TARGET="${PRODUCT}"
           PLUGINS_DIR="${BASE}/Plugins"
-          BUNDLE="${PLUGINS_DIR}/${PRODUCT}.bundle"
 
-          # remove only what the build produces, so a misdirected build fails
-          # at verify instead of shipping a stale committed binary
-          echo "Cleaning stale outputs to avoid /Default/ vs / bug"
-          rm -f "${BUNDLE:?}/Contents/MacOS/${PRODUCT:?}"
-          rm -rf "${BUNDLE:?}/Contents/_CodeSignature"
-          rm -rf "${PLUGINS_DIR:?}/Default"
-          rm -rf "${PLUGINS_DIR:?}/${PRODUCT:?}.build"
+          python3 .github/scripts/native.py
 
           echo "Building $XCODE_PROJECT target $XCODE_TARGET"
           xcodebuild -project "$XCODE_PROJECT" \
@@ -168,7 +159,7 @@ jobs:
           CONTENTS="${BASE}/Plugins/${PRODUCT}.bundle/Contents"
           BIN="${CONTENTS}/MacOS/${PRODUCT}"
 
-          if [ ! -f "$BIN" ]; then
+          if [ ! -s "$BIN" ]; then
             echo "::error::Expected binary not found at $BIN - CONFIGURATION_BUILD_DIR mismatch?"
             ls -R "$BASE"
             exit 1
@@ -179,9 +170,10 @@ jobs:
 
           # separate lines: under set -e a failure left of && is ignored
           lipo -info "$BIN"
-          lipo -info "$BIN" | grep -q "arm64"
-          lipo -info "$BIN" | grep -q "x86_64"
-          if lipo -info "$BIN" | grep -q "i386"; then
+          ARCHITECTURES="$(lipo -archs "$BIN")"
+          case " $ARCHITECTURES " in *" arm64 "*) ;; *) exit 1 ;; esac
+          case " $ARCHITECTURES " in *" x86_64 "*) ;; *) exit 1 ;; esac
+          if [[ " $ARCHITECTURES " == *" i386 "* ]]; then
             echo "::error::i386 slice found - this is a stale binary, not the fresh build"
             exit 1
           fi
@@ -190,8 +182,9 @@ jobs:
           for lib in "${CONTENTS}"/MacOS/*.dylib; do
             [ -e "$lib" ] || continue
             lipo -info "$lib"
-            lipo -info "$lib" | grep -q "arm64"
-            lipo -info "$lib" | grep -q "x86_64"
+            ARCHITECTURES="$(lipo -archs "$lib")"
+            case " $ARCHITECTURES " in *" arm64 "*) ;; *) exit 1 ;; esac
+            case " $ARCHITECTURES " in *" x86_64 "*) ;; *) exit 1 ;; esac
           done
 
           if [ ! -f "${CONTENTS}/Resources/manifest.json" ]; then
@@ -202,6 +195,7 @@ jobs:
             echo "::error::constants.xlf is not copied to ${CONTENTS}/Resources"
             exit 1
           fi
+          python3 .github/scripts/source_version.py --verify-bundle "${BASE}/Plugins/${PRODUCT}.bundle"
 
       - name: locate bundle
         run: |
@@ -242,8 +236,12 @@ jobs:
           # (notarytool submit --wait exits 0 even when the status is Invalid)
           notarize() {
             local OUT ID STATUS
-            OUT=$(xcrun notarytool submit "$1" --keychain-profile "notarytool-profile" --keychain "$KEYCHAIN_PATH" \
-              --wait --output-format json) || true
+            if ! OUT=$(xcrun notarytool submit "$1" --keychain-profile "notarytool-profile" --keychain "$KEYCHAIN_PATH" \
+              --wait --output-format json); then
+              echo "$OUT"
+              echo "::error::Notarization command failed for $1"
+              return 1
+            fi
             echo "$OUT"
             ID=$(plutil -extract id raw -o - - <<< "$OUT" 2>/dev/null || true)
             STATUS=$(plutil -extract status raw -o - - <<< "$OUT" 2>/dev/null || true)
@@ -265,10 +263,9 @@ jobs:
           ls -lh "$ZIP_PATH" "$DMG_PATH"
 
       - name: create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.version.outputs.tag }}
-          name: ${{ needs.version.outputs.tag }}
-          files: |
-            ${{ env.ZIP_PATH }}
-            ${{ env.DMG_PATH }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/release.py publish --sha "$SELECTED_SHA" "$ZIP_PATH" "$DMG_PATH"
