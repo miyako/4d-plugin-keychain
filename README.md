@@ -15,6 +15,71 @@ Command | Returns | Purpose
 
 Releases: [GitHub releases](https://github.com/miyako/4d-plugin-keychain/releases)
 
+## Manual versioning and publication
+
+The two Actions workflows are independent:
+
+- **Bump version**: select a branch and the required `patch`, `minor`, or `major`
+  mode (default `patch`). It validates the selected event SHA, changes only the
+  source version files, creates one bot-authored commit with the Copilot trailer,
+  and nonforce-pushes that commit to that branch. It never tags, releases,
+  builds, or dispatches another workflow.
+- **Build**: use the built-in ref selector; there are no custom inputs. The
+  selected immutable event SHA supplies the canonical `X.Y.Z` version. Build
+  does not increment it. It builds the existing macOS universal plugin, signs,
+  notarizes ZIP and DMG, staples the DMG, and only then creates a new `vX.Y.Z` tag
+  and release with those two assets. The committed Windows64 binary remains a
+  template placeholder, not a Windows build.
+
+The original Bump header at `371d7ea7bf238e939f4fa5458f67697df9a317bf`
+explicitly coordinates `MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`, and the
+plist versions; its old marketing-only implementation was incomplete. All six
+project assignments and the source plist short version must agree. The optional
+plist build key stays absent when absent; supported Xcode references remain
+references. The actual copied source localization is
+`English.lproj/InfoPlist.strings`, not the UTF-16 generated destination in the
+bundle. Bump updates its version override without re-encoding or normalizing
+line endings. Intake versions remain `1.0.0`; there is no migration increment.
+
+Bump rejects a stale branch before editing and again against the actual remote
+advertisement in its pre-push hook. The generated commit must be a nonempty,
+source-only, sole direct child of the selected SHA. Annotated tags are never
+followed. Build publication uses one repository-wide concurrency group across
+refs, without cancellation; this is serialization, **not a FIFO guarantee**.
+There is no new default-branch-only restriction and no tag-push or automatic
+Bump-to-Build linkage.
+
+Build requires an initially clean selected checkout. Its final gate instead
+allows the known generated executable, plist, copied localization, signature,
+target intermediates and named packages to remain dirty, preserving the bytes
+that were actually built and signed. It independently checks the index and
+working tree against the selected commit for all nongenerated inputs. Do not
+reset generated output to manufacture a clean tree.
+
+Authenticated, paginated release enumeration (including drafts) and exact
+remote tag absence are checked before native work and after all native gates.
+Publication is create-only: create the tag at the selected SHA, verify it, create
+a **new** release ID, then upload and verify each exactly named asset. The
+original release-notes behavior is retained: empty body, no generated notes.
+An existing tag/release, even at the same SHA, is an error. Authentication,
+network, malformed-response and asset verification failures fail closed.
+
+**Partial publication requires manual recovery.** A failure can leave a tag,
+an empty release, or only some assets. The workflow never deletes, patches,
+clobbers, reuses, rolls back, or retries those objects. Inspect the failed run,
+the exact tag SHA, new release ID and asset names/sizes/states, then have a
+maintainer decide the recovery. Rerunning the same version is deliberately
+blocked; do not remove production objects merely to make a run green.
+
+Offline regression tests use disposable real Git repositories, a fake GitHub
+CLI and a closed-PATH native stub harness; they never build, sign, notarize or
+run 4D. They require Python 3 with PyYAML and `actionlint`:
+
+```sh
+python3 -m unittest discover -s tests -v
+actionlint .github/workflows/*.yml
+```
+
 ---
 
 ## Requirements & platform notes
