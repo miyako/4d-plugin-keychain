@@ -1,6 +1,49 @@
 #include "4DPlugin-JSON.h"
 #include <climits>
 #include <cstring>
+#include <stdexcept>
+
+static PA_Unistring json_create_string(const CUTF16String *text) {
+    PA_Unistring value = PA_CreateUnistring((PA_Unichar *)text->c_str());
+    if(PA_GetLastError() != eER_NoErr)
+        throw std::runtime_error("JSON helper: string allocation failed");
+    return value;
+}
+
+class JsonVariableOwner {
+public:
+    explicit JsonVariableOwner(PA_Variable *value) : value_(value) {}
+    ~JsonVariableOwner() { if(value_) PA_ClearVariable(value_); }
+    void release() { value_ = NULL; }
+    JsonVariableOwner(const JsonVariableOwner&) = delete;
+    JsonVariableOwner& operator=(const JsonVariableOwner&) = delete;
+private:
+    PA_Variable *value_;
+};
+
+static bool json_get_property(PA_ObjectRef obj, const wchar_t *_key, PA_Variable *value) {
+    CUTF16String ukey;
+    json_wconv(_key, &ukey);
+    PA_Unistring key = json_create_string(&ukey);
+    bool present = PA_HasObjectProperty(obj, &key);
+    PA_ErrorCode error = PA_GetLastError();
+    if(error != eER_NoErr) {
+        PA_DisposeUnistring(&key);
+        throw std::runtime_error("JSON helper: property lookup failed");
+    }
+    if(present) {
+        PA_Variable result = PA_GetObjectProperty(obj, &key);
+        error = PA_GetLastError();
+        PA_DisposeUnistring(&key);
+        // Failed engine output is unspecified; do not inspect or clear it.
+        if(error != eER_NoErr)
+            throw std::runtime_error("JSON helper: property read failed");
+        *value = result;
+    } else {
+        PA_DisposeUnistring(&key);
+    }
+    return present;
+}
 
 void json_wconv(const wchar_t *value, CUTF16String *u16) {
 
@@ -63,10 +106,13 @@ static bool json_u8_to_u16(const char *u8, CUTF16String *u16) {
 // PA_ClearVariable releases the plugin's own reference.
 static void json_set_property(PA_ObjectRef obj, const CUTF16String *ukey, PA_Variable *v) {
 
-    PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey->c_str());
+    JsonVariableOwner owner(v);
+    PA_Unistring key = json_create_string(ukey);
     PA_SetObjectProperty(obj, &key, *v);
+    PA_ErrorCode error = PA_GetLastError();
     PA_DisposeUnistring(&key);
-    PA_ClearVariable(v);
+    if(error != eER_NoErr)
+        throw std::runtime_error("JSON helper: property write failed");
 }
 
 // Builds a string variable from UTF-16 text. Starts from eVK_Undefined, not
@@ -77,7 +123,7 @@ static void json_set_property(PA_ObjectRef obj, const CUTF16String *ukey, PA_Var
 static PA_Variable json_string_variable(const CUTF16String *u16) {
 
     PA_Variable v = PA_CreateVariable(eVK_Undefined);
-    PA_Unistring value = PA_CreateUnistring((PA_Unichar *)u16->c_str());
+    PA_Unistring value = json_create_string(u16);
     PA_SetStringVariable(&v, &value);
     return v;
 }
@@ -287,11 +333,13 @@ bool ob_is_defined(PA_ObjectRef obj, const wchar_t *_key) {
     {
         CUTF16String ukey;
         json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
+        PA_Unistring key = json_create_string(&ukey);
 
         is_defined = PA_HasObjectProperty(obj, &key);
-
+        PA_ErrorCode error = PA_GetLastError();
         PA_DisposeUnistring(&key);
+        if(error != eER_NoErr)
+            throw std::runtime_error("JSON helper: property lookup failed");
     }
     return is_defined;
 }
@@ -302,19 +350,20 @@ bool ob_get_a(PA_ObjectRef obj, const wchar_t *_key, CUTF8String *value) {
 
     if(obj && _key)
     {
-        CUTF16String ukey;
-        json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
-        is_defined = PA_HasObjectProperty(obj, &key);
+        PA_Variable v;
+        is_defined = json_get_property(obj, _key, &v);
 
         if(is_defined)
         {
-            PA_Variable v = PA_GetObjectProperty(obj, &key);
+            JsonVariableOwner owner(&v);
             if(PA_GetVariableKind(v) == eVK_Unistring)
             {
                 PA_Unistring uvalue = PA_GetStringVariable(v);
+                if(PA_GetLastError() != eER_NoErr)
+                    throw std::runtime_error("JSON helper: string read failed");
 
-                CUTF16String u = CUTF16String(uvalue.fString, uvalue.fLength);
+                CUTF16String u;
+                if(uvalue.fLength) u.assign(uvalue.fString, uvalue.fLength);
 #ifdef _WIN32
                 int len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)u.c_str(), u.length(), NULL, 0, NULL, NULL);
 
@@ -349,8 +398,6 @@ bool ob_get_a(PA_ObjectRef obj, const wchar_t *_key, CUTF8String *value) {
 #endif
             }
         }
-
-        PA_DisposeUnistring(&key);
     }
 
     return is_defined;
@@ -362,20 +409,15 @@ bool ob_get_b(PA_ObjectRef obj, const wchar_t *_key) {
 
     if(obj && _key)
     {
-        CUTF16String ukey;
-        json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
-
-        if(PA_HasObjectProperty(obj, &key))
+        PA_Variable v;
+        if(json_get_property(obj, _key, &v))
         {
-            PA_Variable v = PA_GetObjectProperty(obj, &key);
+            JsonVariableOwner owner(&v);
             if(PA_GetVariableKind(v) == eVK_Boolean)
             {
                 value = PA_GetBooleanVariable(v);
             }
         }
-
-        PA_DisposeUnistring(&key);
     }
 
     return value;
@@ -387,20 +429,15 @@ double ob_get_n(PA_ObjectRef obj, const wchar_t *_key) {
 
     if(obj && _key)
     {
-        CUTF16String ukey;
-        json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
-
-        if(PA_HasObjectProperty(obj, &key))
+        PA_Variable v;
+        if(json_get_property(obj, _key, &v))
         {
-            PA_Variable v = PA_GetObjectProperty(obj, &key);
+            JsonVariableOwner owner(&v);
             if(PA_GetVariableKind(v) == eVK_Real)
             {
                 value = PA_GetRealVariable(v);
             }
         }
-
-        PA_DisposeUnistring(&key);
     }
 
     return value;
@@ -412,20 +449,16 @@ PA_CollectionRef ob_get_c(PA_ObjectRef obj, const wchar_t *_key) {
 
     if(obj && _key)
     {
-        CUTF16String ukey;
-        json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
-
-        if(PA_HasObjectProperty(obj, &key))
+        PA_Variable v;
+        if(json_get_property(obj, _key, &v))
         {
-            PA_Variable v = PA_GetObjectProperty(obj, &key);
+            JsonVariableOwner owner(&v);
             if(PA_GetVariableKind(v) == eVK_Collection)
             {
                 value = PA_GetCollectionVariable(v);
+                owner.release();
             }
         }
-
-        PA_DisposeUnistring(&key);
     }
     return value;
 }
@@ -436,20 +469,16 @@ PA_ObjectRef ob_get_o(PA_ObjectRef obj, const wchar_t *_key) {
 
     if(obj && _key)
     {
-        CUTF16String ukey;
-        json_wconv(_key, &ukey);
-        PA_Unistring key = PA_CreateUnistring((PA_Unichar *)ukey.c_str());
-
-        if(PA_HasObjectProperty(obj, &key))
+        PA_Variable v;
+        if(json_get_property(obj, _key, &v))
         {
-            PA_Variable v = PA_GetObjectProperty(obj, &key);
+            JsonVariableOwner owner(&v);
             if(PA_GetVariableKind(v) == eVK_Object)
             {
                 value = PA_GetObjectVariable(v);
+                owner.release();
             }
         }
-
-        PA_DisposeUnistring(&key);
     }
     return value;
 }
@@ -467,18 +496,23 @@ void ob_stringify(PA_ObjectRef obj, CUTF8String *value) {
     _params[0] = PA_CreateVariable(eVK_Undefined);
     PA_SetObjectVariable(&_params[0], obj);
     PA_Variable vjson = PA_ExecuteCommandByID( /*JSON Stringify */1217, _params, 1);
+    PA_ErrorCode error = PA_GetLastError();
     PA_SetObjectVariable(&_params[0], NULL);
+    if(error != eER_NoErr)
+        throw std::runtime_error("JSON helper: stringify failed");
 
+    JsonVariableOwner owner(&vjson);
     if(PA_GetVariableKind(vjson) != eVK_Unistring)
     {
         // "JSON Stringify" didn't return a string (unexpected failure) --
         // bail out instead of reading a Unistring out of a variable that
         // may not hold one.
-        PA_ClearVariable(&vjson);
         return;
     }
 
     PA_Unistring ujson = PA_GetStringVariable(vjson);
+    if(PA_GetLastError() != eER_NoErr)
+        throw std::runtime_error("JSON helper: string read failed");
 
 #ifdef _WIN32
     int len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)ujson.fString, ujson.fLength, NULL, 0, NULL, NULL);
@@ -506,6 +540,4 @@ void ob_stringify(PA_ObjectRef obj, CUTF8String *value) {
     }
 
 #endif
-
-    PA_ClearVariable(&vjson);
 }

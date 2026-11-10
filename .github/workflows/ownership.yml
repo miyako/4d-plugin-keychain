@@ -1,0 +1,29 @@
+name: Synthetic ownership regression
+
+on:
+  pull_request:
+    paths:
+      - 'support/**'
+      - '4D Plugin API/**'
+      - 'tests/ownership/**'
+      - '.github/workflows/ownership.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'support/**'
+      - '4D Plugin API/**'
+      - 'tests/ownership/**'
+      - '.github/workflows/ownership.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ownership:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Synthetic host only, no credential dispatcher or Security framework
+        run: python3 tests/ownership/run.py -v
