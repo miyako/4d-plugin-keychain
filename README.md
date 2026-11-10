@@ -17,7 +17,7 @@ Releases: [GitHub releases](https://github.com/miyako/4d-plugin-keychain/release
 
 ## Manual versioning and publication
 
-The two Actions workflows are independent:
+The two manual publication workflows are independent:
 
 - **Bump version**: select a branch and the required `patch`, `minor`, or `major`
   mode (default `patch`). It validates the selected event SHA, changes only the
@@ -79,6 +79,13 @@ run 4D. They require Python 3 with PyYAML and `actionlint`:
 python3 -m unittest discover -s tests -v
 actionlint .github/workflows/*.yml
 ```
+
+The separate **Synthetic ownership regression** workflow runs unsigned on
+relevant pull requests and `master` changes. On macOS, run
+`python3 tests/ownership/run.py -v` to compile the actual JSON helpers, local
+wrappers and unchanged bundled SDK against a synthetic engine boundary. It
+does not compile the credential dispatcher, link Security, access a keychain,
+or invoke any release/build scripts. See the [ownership evidence and limits](tests/ownership/README.md).
 
 ---
 

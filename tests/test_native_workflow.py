@@ -428,9 +428,22 @@ class OriginalContractTests(unittest.TestCase):
             yaml.load(path.read_text(), Loader=yaml.BaseLoader)
             for path in (ROOT / ".github/workflows").glob("*.yml")
         ]
-        self.assertEqual(len(workflows), 2)
+        self.assertEqual(len(workflows), 3)
         build = next(workflow for workflow in workflows if workflow["name"] == "Build")
-        bump = next(workflow for workflow in workflows if workflow["name"] != "Build")
+        bump = next(workflow for workflow in workflows if workflow["name"] == "Bump version")
+        ownership = next(
+            workflow for workflow in workflows
+            if workflow["name"] == "Synthetic ownership regression"
+        )
+        self.assertEqual(set(ownership["on"]), {"pull_request", "push"})
+        self.assertEqual(ownership["on"]["push"]["branches"], ["master"])
+        self.assertEqual(ownership["permissions"], {"contents": "read"})
+        self.assertEqual(set(ownership["jobs"]), {"ownership"})
+        self.assertEqual(ownership["jobs"]["ownership"]["runs-on"], "macos-latest")
+        self.assertEqual(
+            ownership["jobs"]["ownership"]["steps"][-1]["run"],
+            "python3 tests/ownership/run.py -v",
+        )
         self.assertEqual(build["on"], {"workflow_dispatch": ""})
         self.assertEqual(set(bump["on"]), {"workflow_dispatch"})
         inputs = bump["on"]["workflow_dispatch"]["inputs"]
@@ -443,7 +456,7 @@ class OriginalContractTests(unittest.TestCase):
             "group": "release-publication-${{ github.repository }}",
             "cancel-in-progress": "false",
         })
-        for workflow in workflows:
+        for workflow in (build, bump):
             for job in workflow["jobs"].values():
                 for step in job["steps"]:
                     if step.get("uses", "").startswith("actions/checkout@"):
